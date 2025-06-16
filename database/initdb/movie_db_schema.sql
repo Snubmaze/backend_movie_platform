@@ -1,0 +1,125 @@
+-- database/movie_db_schema.sql
+
+-- 1. Определяем ENUM-типы
+CREATE TYPE user_role AS ENUM ('user','admin');
+CREATE TYPE subscription_status AS ENUM ('active','expired','cancelled');
+
+-- 2. Основные таблицы
+CREATE TABLE users (
+  user_id       BIGINT        PRIMARY KEY,
+  email         VARCHAR       NOT NULL UNIQUE,
+  password_hash VARCHAR       NOT NULL,
+  full_name     VARCHAR,
+  avatar_url    VARCHAR,
+  role          user_role     NOT NULL DEFAULT 'user',
+  created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE movies (
+  movie_id     BIGINT      PRIMARY KEY,
+  title        VARCHAR     NOT NULL,
+  description  TEXT,
+  release_year SMALLINT    NOT NULL,
+  duration_min SMALLINT    NOT NULL,
+  avg_rating   NUMERIC(3,2) NOT NULL DEFAULT 0.00,
+  poster_url   VARCHAR,
+  trailer_url  VARCHAR
+);
+
+CREATE TABLE genres (
+  genre_id SMALLINT PRIMARY KEY,
+  name     VARCHAR  NOT NULL UNIQUE
+);
+
+CREATE TABLE movie_genres (
+  movie_id BIGINT    NOT NULL REFERENCES movies(movie_id),
+  genre_id SMALLINT  NOT NULL REFERENCES genres(genre_id),
+  PRIMARY KEY (movie_id, genre_id)
+);
+
+CREATE TABLE countries (
+  country_id SMALLINT PRIMARY KEY,
+  name       VARCHAR  NOT NULL UNIQUE
+);
+
+CREATE TABLE movie_countries (
+  movie_id   BIGINT   NOT NULL REFERENCES movies(movie_id),
+  country_id SMALLINT NOT NULL REFERENCES countries(country_id),
+  PRIMARY KEY (movie_id, country_id)
+);
+
+CREATE TABLE actors (
+  actor_id  BIGINT PRIMARY KEY,
+  full_name VARCHAR NOT NULL,
+  birth_date DATE,
+  photo_url VARCHAR
+);
+
+CREATE TABLE directors (
+  director_id BIGINT PRIMARY KEY,
+  full_name   VARCHAR NOT NULL,
+  birth_date  DATE,
+  photo_url   VARCHAR
+);
+
+CREATE TABLE movie_actors (
+  movie_id   BIGINT NOT NULL REFERENCES movies(movie_id),
+  actor_id   BIGINT NOT NULL REFERENCES actors(actor_id),
+  character  VARCHAR,
+  PRIMARY KEY (movie_id, actor_id)
+);
+
+CREATE TABLE movie_directors (
+  movie_id   BIGINT NOT NULL REFERENCES movies(movie_id),
+  director_id BIGINT NOT NULL REFERENCES directors(director_id),
+  PRIMARY KEY (movie_id, director_id)
+);
+
+CREATE TABLE ratings (
+  rating_id   BIGINT    PRIMARY KEY,
+  user_id     BIGINT    NOT NULL REFERENCES users(user_id),
+  movie_id    BIGINT    NOT NULL REFERENCES movies(movie_id),
+  rating      SMALLINT  NOT NULL,
+  review_text TEXT,
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE watch_history (
+  history_id  BIGINT    PRIMARY KEY,
+  user_id     BIGINT    NOT NULL REFERENCES users(user_id),
+  movie_id    BIGINT    NOT NULL REFERENCES movies(movie_id),
+  watched_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  duration_min SMALLINT
+);
+
+CREATE TABLE favorites (
+  user_id  BIGINT NOT NULL REFERENCES users(user_id),
+  movie_id BIGINT NOT NULL REFERENCES movies(movie_id),
+  added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, movie_id)
+);
+
+CREATE TABLE subscription_plans (
+  plan_id     SMALLINT PRIMARY KEY,
+  name        VARCHAR  NOT NULL,
+  price       NUMERIC(10,2) NOT NULL,
+  period_days INT     NOT NULL
+);
+
+CREATE TABLE subscriptions (
+  subscription_id BIGINT    PRIMARY KEY,
+  user_id         BIGINT    NOT NULL REFERENCES users(user_id),
+  plan_id         SMALLINT  NOT NULL REFERENCES subscription_plans(plan_id),
+  start_date      DATE      NOT NULL,
+  end_date        DATE      NOT NULL,
+  status          subscription_status NOT NULL DEFAULT 'active'
+);
+
+CREATE TABLE payments (
+  payment_id      BIGINT    PRIMARY KEY,
+  user_id         BIGINT    NOT NULL REFERENCES users(user_id),
+  subscription_id BIGINT    REFERENCES subscriptions(subscription_id),
+  amount          NUMERIC(10,2) NOT NULL,
+  paid_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status          VARCHAR   NOT NULL
+);
