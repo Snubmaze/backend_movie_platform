@@ -12,6 +12,14 @@ class MovieBase(BaseModel):
     trailer_url: Optional[str] = None
 
 
+class MovieSummary(BaseModel):
+    movie_id: int
+    title: str = Field(..., description="Название фильма")
+    release_year: int = Field(..., ge=1888, le=2100, description="Год выхода")
+    avg_rating: Optional[float] = Field(0.0, ge=0.0, le=10.0, description="Средний рейтинг")
+    poster_url: Optional[str] = None
+
+
 class Movie(MovieBase):
     movie_id: int
     genres:    List[str]
@@ -22,15 +30,6 @@ class Movie(MovieBase):
 
 class MovieCreate(MovieBase):
     pass
-
-
-class MovieRead(MovieBase):
-    movie_id: int
-    avg_rating: float
-    poster_url: Optional[str]
-    trailer_url: Optional[str]
-    genres: List[str]
-    countries: List[str]
 
 
 class MovieUpdate(BaseModel):

@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB:   movie_db
+      POSTGRES_DB: movie_db
       POSTGRES_USER: movie_user
       POSTGRES_PASSWORD: secret
     ports:
@@ -11,7 +11,7 @@ services:
       - db_data:/var/lib/postgresql/data
       - ./database/initdb:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL","pg_isready -U movie_user -d movie_db"]
+      test: ["CMD-SHELL", "pg_isready -U movie_user -d movie_db"]
       interval: 1s
       retries: 3
     networks:
@@ -19,18 +19,20 @@ services:
 
   seeder:
     build:
-      context: ./services/db_seeder
+      context: ./db_seeder
     container_name: seeder
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - ./.env
     networks:
-    - backend
+      - backend
 
-  content-service:
+  web:
     build:
-      context: ./services/content_service
-    container_name: content-service
+      context: ./web
+    container_name: web
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -38,7 +40,9 @@ services:
       db:
         condition: service_healthy
       seeder:
-          condition: service_completed_successfully
+        condition: service_completed_successfully
+    env_file:
+      - ./.env
     networks:
       - backend
 
