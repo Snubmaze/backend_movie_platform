@@ -20,7 +20,7 @@ class MovieSummary(BaseModel):
     poster_url: Optional[str] = None
 
 
-class Movie(MovieBase):
+class MovieDetail(MovieBase):
     movie_id: int
     genres:    List[str]
     actors:    List[str]
@@ -28,18 +28,27 @@ class Movie(MovieBase):
     countries: List[str]
 
 
-class MovieCreate(MovieBase):
-    pass
+class MovieUpdate(MovieBase):
+    genres:    Optional[List[str]] = None
+    countries: Optional[List[str]] = None
+    actors: Optional[List[str]] = None
+    directors: Optional[List[str]] = None
 
 
-class MovieUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    release_year: Optional[int] = Field(None, ge=1888, le=2100)
-    duration_min: Optional[int] = Field(None, gt=0)
-    avg_rating: Optional[float] = Field(None, ge=0.0, le=10.0)
+class MoviePatch(BaseModel):
+    title: Optional[str] = Field(None, description="Название фильма")
+    description: Optional[str] = Field(None, description="Описание")
+    release_year: Optional[int] = Field(None, ge=1888, le=2100, description="Год выхода")
+    duration_min: Optional[int] = Field(None, gt=0, description="Длительность (мин)")
+    avg_rating: Optional[float] = Field(None, ge=0.0, le=10.0, description="Средний рейтинг")
     poster_url: Optional[str] = None
     trailer_url: Optional[str] = None
+
+    genres:    Optional[List[str]] = None
+    countries: Optional[List[str]] = None
+    actors:    Optional[List[str]] = None
+    directors: Optional[List[str]] = None
+
 
     class Config:
         orm_mode = True
