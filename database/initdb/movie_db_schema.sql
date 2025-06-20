@@ -19,7 +19,7 @@ CREATE TABLE movies (
   description  TEXT,
   release_year SMALLINT    NOT NULL,
   duration_min SMALLINT    NOT NULL,
-  avg_rating   NUMERIC(3,2) NOT NULL DEFAULT 0.00,
+  avg_rating   NUMERIC(4,2) NOT NULL DEFAULT 0.00,
   poster_url   VARCHAR,
   trailer_url  VARCHAR
 );
