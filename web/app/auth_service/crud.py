@@ -2,43 +2,35 @@ from typing import Optional
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
-from app.auth_service.schemas import UserRead, UserCreate
+from app.auth_service.schemas import UserRead, UserCreate, UserInDB
 from app.security import hash_password
 
 
-async def get_user_by_username(
-    username: str,
-    session: AsyncSession
-) -> Optional[UserRead]:
-
-    q = text("""
+async def get_user_by_username(username: str, session: AsyncSession) -> Optional[UserInDB]:
+    query = text("""
         SELECT
           user_id,
           username,
+          password_hash, 
           avatar_url,
           role,
           created_at
         FROM users
         WHERE username = :username
     """)
-    result = await session.execute(q, {"username": username})
+    result = await session.execute(query, {"username": username})
     row = result.first()
-    return UserRead(**row._mapping) if row else None
+    return UserInDB(**row._mapping) if row else None
 
 
-async def add_user(
-    user: UserCreate,
-    session: AsyncSession
-) -> UserRead:
-
-    exists = await session.execute(
+async def add_user(user: UserCreate, session: AsyncSession) -> UserRead:
+    exists_user = await session.execute(
         text("SELECT 1 FROM users WHERE username = :username"),
         {"username": user.username}
     )
-    if exists.scalar_one_or_none():
+    if exists_user.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="username already registered")
 
-    # 2) Вставляем нового пользователя
     pw_hash = hash_password(user.password)
     insert = text("""
         INSERT INTO users (
