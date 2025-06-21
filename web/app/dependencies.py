@@ -27,6 +27,8 @@ async def get_current_user(
         raise HTTPException(status_code=500, detail="Internal server error")
     
     user_data = await get_user_by_username(username, session)
+    if user_data is None:
+        raise HTTPException(status_code=404, detail="User not found")
     return UserRead(**user_data.dict())
 
 

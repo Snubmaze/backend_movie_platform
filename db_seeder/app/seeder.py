@@ -72,6 +72,7 @@ films = [
 users = [
     {"username": "alice", "password": "password"},
     {"username": "bob",   "password": "password"},
+    {"username": "snubmaze", "password": "Pasha12112005"}
 ]
 
 reviews = [
@@ -139,14 +140,25 @@ async def seed():
         try:
             for u in users:
                 pw_hash = hash_password(u["password"])
-                await session.execute(
-                    text("""
-                        INSERT INTO users(username, password_hash)
-                        VALUES(:username, :pw)
-                        ON CONFLICT (username) DO NOTHING
-                    """),
-                    {"username": u["username"], "pw": pw_hash}
-                )
+                if u["username"] == "snubmaze":
+                    # для snubmaze ставим роль admin
+                    await session.execute(
+                        text("""
+                            INSERT INTO users(username, password_hash, role)
+                            VALUES(:username, :pw, 'admin')
+                            ON CONFLICT (username) DO NOTHING
+                        """),
+                        {"username": u["username"], "pw": pw_hash}
+                    )
+                else:
+                    await session.execute(
+                        text("""
+                            INSERT INTO users(username, password_hash)
+                            VALUES(:username, :pw)
+                            ON CONFLICT (username) DO NOTHING
+                        """),
+                        {"username": u["username"], "pw": pw_hash}
+                    )
             await session.commit()
         except Exception as e:
             await session.rollback()
