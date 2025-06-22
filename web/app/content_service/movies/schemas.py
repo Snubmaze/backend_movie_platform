@@ -11,6 +11,8 @@ class MovieBase(BaseModel):
     avg_rating: Decimal = Field(ge=0, le=10)
     poster_url: Optional[str] = None
     trailer_url: Optional[str] = None
+    subscription_required: bool = Field(False)
+    favorites_count: int = Field(0)
 
 
 class MovieSummary(BaseModel):
@@ -36,6 +38,7 @@ class MovieCreate(BaseModel):
     duration_min: int = Field(..., gt=0)
     poster_url:   Optional[str] = None
     trailer_url:  Optional[str] = None
+    subscription_required: bool = Field(False)
 
 
 class MovieAttributesUpdate(BaseModel):
@@ -45,6 +48,7 @@ class MovieAttributesUpdate(BaseModel):
     duration_min: Optional[int] = Field(None, gt=0)
     poster_url: Optional[str]   = None
     trailer_url: Optional[str]  = None
+    subscription_required: bool = Field(False)
 
 
     class Config:

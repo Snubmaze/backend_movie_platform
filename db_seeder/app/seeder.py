@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 import asyncio
 import os
-import hashlib
+from passlib.context import CryptContext
 from sqlalchemy import text
 from database import new_session
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
 def hash_password(password: str) -> str:
-    """
-    Генерирует соль и хэш пароля через PBKDF2-HMAC-SHA256.
-    Возвращает строку 'salt:hash' в hex.
-    """
-    salt = os.urandom(16)
-    dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 100_000)
-    return f"{salt.hex()}:{dk.hex()}"
+    return pwd_context.hash(password)
+
 
 films = [
     {

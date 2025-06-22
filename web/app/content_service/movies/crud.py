@@ -27,6 +27,8 @@ async def get_movie(session: AsyncSession, movie_id: int) -> Optional[MovieDetai
           m.avg_rating,
           m.poster_url,
           m.trailer_url,
+          m.subscription_required,
+          m.favorites_count,                                                           
           COALESCE(json_agg(DISTINCT g.name)   FILTER (WHERE g.name   IS NOT NULL), '[]') AS genres,
           COALESCE(json_agg(DISTINCT a.full_name) FILTER (WHERE a.full_name IS NOT NULL), '[]') AS actors,
           COALESCE(json_agg(DISTINCT d.full_name) FILTER (WHERE d.full_name IS NOT NULL), '[]') AS directors,
@@ -42,20 +44,21 @@ async def get_movie(session: AsyncSession, movie_id: int) -> Optional[MovieDetai
         LEFT JOIN countries       c  ON c.country_id   = mc.country_id
         WHERE m.movie_id = :movie_id
         GROUP BY
-          m.movie_id,
-          m.title,
-          m.description,
-          m.release_year,
-          m.duration_min,
-          m.avg_rating,
-          m.poster_url,
-          m.trailer_url
+          m.movie_id                            
     """), {"movie_id": movie_id})
     row = result.mappings().first()
     if not row:
         raise HTTPException(status_code=404, detail="Movie not found")
     return MovieDetail(**dict(row))
 
+        #   m.title,
+        #   m.description,
+        #   m.release_year,
+        #   m.duration_min,
+        #   m.avg_rating,
+        #   m.poster_url,
+        #   m.trailer_url,
+        #   m.subscription_required 
 
 async def create_movie(
     session: AsyncSession,
@@ -70,14 +73,16 @@ async def create_movie(
               release_year,
               duration_min,
               poster_url,
-              trailer_url
+              trailer_url,
+              subscription_required
             ) VALUES (
               :title,
               :description,
               :release_year,
               :duration_min,
               :poster_url,
-              :trailer_url
+              :trailer_url,
+              :subscription_required
             )
             RETURNING
               movie_id,
@@ -87,7 +92,8 @@ async def create_movie(
               description,
               duration_min,
               poster_url,
-              trailer_url
+              trailer_url,
+              subscription_required
         """),
         {
             "title": payload.title,
@@ -96,6 +102,7 @@ async def create_movie(
             "duration_min": payload.duration_min,
             "poster_url": payload.poster_url,
             "trailer_url": payload.trailer_url,
+            "subscription_required": payload.subscription_required
         }
     )
     await session.commit()
@@ -117,6 +124,7 @@ async def create_movie(
         duration_min= data["duration_min"],
         poster_url  = data.get("poster_url"),
         trailer_url = data.get("trailer_url"),
+        subscription_required = data.get("subscription_required"),
         genres      = [],
         actors      = [],
         directors   = [],
@@ -142,7 +150,7 @@ async def update_movie_attributes(
     params = {"movie_id": movie_id}
     for field in [
         "title", "description", "release_year",
-        "duration_min", "poster_url", "trailer_url"
+        "duration_min", "poster_url", "trailer_url", "subscription_required"
     ]:
         value = getattr(payload, field)
         if value is not None:
