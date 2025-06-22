@@ -6,6 +6,8 @@ from app.database import get_session
 from app.content_service.genres.crud import add_movie_genre, remove_movie_genre, get_all_genres, create_genre, delete_genre
 from app.content_service.genres.schemas import GenreCreate, GenreRead
 from typing import List, Dict
+from app.dependencies import get_admin
+from app.auth_service.schemas import UserRead
 
 
 router = APIRouter(tags=["Content"])
@@ -19,7 +21,9 @@ async def list_genres(session: AsyncSession = Depends(get_session)):
 @router.post("/genres", response_model=GenreRead)
 async def add_genre(
     genre: GenreCreate,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
+
 ):
     return await create_genre(session, genre)
 
@@ -27,7 +31,9 @@ async def add_genre(
 @router.delete("/genres/{genre_id}", response_model=Dict[str, str])
 async def remove_genre(
     genre_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
+
 ):
     return await delete_genre(session, genre_id)
 
@@ -36,7 +42,9 @@ async def remove_genre(
 async def add_genre_to_movie(
     movie_id: int,
     genre_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
+
 ):
     movie = await get_movie(session, movie_id)
     if not movie:
@@ -58,7 +66,8 @@ async def add_genre_to_movie(
 async def remove_genre_from_movie(
     movie_id: int,
     genre_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     movie = await get_movie(session, movie_id)
     if not movie:

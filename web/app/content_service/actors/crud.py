@@ -1,5 +1,3 @@
-# app/content_service/actors/crud.py
-
 from typing import List, Optional
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +15,6 @@ async def get_all_actors(session: AsyncSession) -> List[ActorRead]:
 
 
 async def create_actor(session: AsyncSession, actor: ActorCreate) -> ActorRead:
-    # 1) Проверяем дубликат: и имя, и дата рождения должны совпадать
     if actor.birth_date is not None:
         dup = await session.execute(
             text("""

@@ -2,7 +2,8 @@ from typing import List, Dict
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.dependencies import get_admin
+from app.auth_service.schemas import UserRead
 from app.database import get_session
 from app.content_service.countries.schemas import CountryCreate, CountryRead
 from app.content_service.countries.crud import (
@@ -13,6 +14,7 @@ from app.content_service.countries.crud import (
     remove_movie_country
 )
 from app.content_service.movies.crud import get_movie
+
 
 router = APIRouter(tags=["Content"])
 
@@ -25,7 +27,8 @@ async def list_countries(session: AsyncSession = Depends(get_session)):
 @router.post("/countries", response_model=CountryRead)
 async def add_country(
     payload: CountryCreate,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     return await create_country(session, payload)
 
@@ -33,7 +36,8 @@ async def add_country(
 @router.delete("/countries/{country_id}", response_model=Dict[str, str])
 async def remove_country(
     country_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     return await delete_country(session, country_id)
 
@@ -42,7 +46,8 @@ async def remove_country(
 async def assign_country_to_movie(
     movie_id: int,
     country_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     movie = await get_movie(session, movie_id)
     if not movie:
@@ -64,7 +69,8 @@ async def assign_country_to_movie(
 async def unassign_country_from_movie(
     movie_id: int,
     country_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     movie = await get_movie(session, movie_id)
     if not movie:

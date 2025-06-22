@@ -4,6 +4,8 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.content_service.movies.crud import get_movie
 from app.database import get_session
+from app.dependencies import get_admin
+from app.auth_service.schemas import UserRead
 from app.content_service.directors.schemas import DirectorCreate, DirectorRead
 from app.content_service.directors.crud import (
     get_all_directors,
@@ -25,7 +27,8 @@ async def list_directors(session: AsyncSession = Depends(get_session)):
 @router.post("/directors", response_model=DirectorRead)
 async def add_director(
     payload: DirectorCreate,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     return await create_director(session, payload)
 
@@ -33,7 +36,8 @@ async def add_director(
 @router.delete("/directors/{director_id}", response_model=Dict[str, str])
 async def remove_director(
     director_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     return await delete_director(session, director_id)
 
@@ -42,7 +46,8 @@ async def remove_director(
 async def assign_director_to_movie(
     movie_id: int,
     director_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     movie = await get_movie(session, movie_id)
     if not movie:
@@ -64,7 +69,8 @@ async def assign_director_to_movie(
 async def unassign_director_from_movie(
     movie_id: int,
     director_id: int,
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    admin: UserRead = Depends(get_admin)
 ):
     movie = await get_movie(session, movie_id)
     if not movie:

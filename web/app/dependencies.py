@@ -34,5 +34,5 @@ async def get_current_user(
 
 async def get_admin(user: UserRead = Depends(get_current_user)) -> UserRead:
     if user.role != "admin":
-        raise HTTPException(status_code=401, detail="Access denied")
+        raise HTTPException(status_code=403, detail="Access denied")
     return user

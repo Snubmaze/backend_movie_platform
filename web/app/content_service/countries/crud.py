@@ -42,12 +42,11 @@ async def delete_country(session: AsyncSession, country_id: int) -> dict:
     if not exists.scalar_one_or_none():
         raise HTTPException(404, "Country not found")
 
-    # сначала удаляем все связи в movie_countries
     await session.execute(
         text("DELETE FROM movie_countries WHERE country_id = :cid"),
         {"cid": country_id}
     )
-    # затем саму страну
+
     await session.execute(
         text("DELETE FROM countries WHERE country_id = :cid"),
         {"cid": country_id}

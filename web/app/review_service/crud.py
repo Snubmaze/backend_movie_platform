@@ -10,7 +10,6 @@ async def upsert_review(
     movie_id: int,
     payload: ReviewCreate
 ) -> ReviewRead:
-    # вставка или обновление (ON CONFLICT по user+movie)
     await session.execute(
         text("""
         INSERT INTO reviews (user_id, movie_id, rating, review_text)
@@ -29,7 +28,7 @@ async def upsert_review(
     )
     await session.commit()
 
-    # читаем и возвращаем свежую запись
+
     result = await session.execute(
         text("""
         SELECT review_id, user_id, movie_id, rating, review_text, created_at, updated_at
@@ -51,7 +50,7 @@ async def delete_review(
     user_id: int,
     movie_id: int
 ) -> dict:
-    # проверка существования
+
     exists = await session.execute(
         text("SELECT 1 FROM reviews WHERE user_id = :uid AND movie_id = :mid"),
         {"uid": user_id, "mid": movie_id}
@@ -59,7 +58,7 @@ async def delete_review(
     if not exists.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Review not found")
 
-    # удаление
+
     await session.execute(
         text("DELETE FROM reviews WHERE user_id = :uid AND movie_id = :mid"),
         {"uid": user_id, "mid": movie_id}

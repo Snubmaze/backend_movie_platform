@@ -85,7 +85,6 @@ SELECT cron.schedule(
 -- Триггер и функция для автоматического поддержания favorites_count в movies
 -- =============================================================================
 
--- 1) Функция, инкрементирующая или декрементирующая счётчик избранного
 CREATE OR REPLACE FUNCTION update_movie_favorites_count() RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN

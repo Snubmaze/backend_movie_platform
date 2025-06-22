@@ -37,12 +37,10 @@ async def delete_director(session: AsyncSession, director_id: int) -> dict:
     if not exists.scalar_one_or_none():
         raise HTTPException(404, "Director not found")
 
-    # сначала очистка связей
     await session.execute(
         text("DELETE FROM movie_directors WHERE director_id = :did"),
         {"did": director_id}
     )
-    # потом удаление самого режиссёра
     await session.execute(
         text("DELETE FROM directors WHERE director_id = :did"),
         {"did": director_id}
