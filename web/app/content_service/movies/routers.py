@@ -1,7 +1,7 @@
-from app.content_service.movies.crud import get_all_movies, get_movie, update_movie_attributes, create_movie, delete_movie
-from fastapi import APIRouter, Depends
+from app.content_service.movies.crud import get_movies_filtered, get_movie, update_movie_attributes, create_movie, delete_movie
+from fastapi import APIRouter, Depends, Query
 from app.content_service.movies.schemas import MovieDetail, MovieSummary, MovieAttributesUpdate, MovieCreate
-from typing import List
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
 from app.dependencies import get_admin
@@ -13,9 +13,20 @@ router = APIRouter(
     tags=["Content"]
     )
 
-@router.get("/", response_model=List[MovieSummary])
-async def read_movies(session: AsyncSession = Depends(get_session)):
-    return await get_all_movies(session)
+@router.get("", response_model=List[MovieSummary])
+async def read_movies(
+    genre:    Optional[str] = Query(None, description="Начало названия жанра"),
+    actor:    Optional[str] = Query(None, description="Начало имени актёра"),
+    director: Optional[str] = Query(None, description="Начало имени режиссёра"),
+    country:  Optional[str] = Query(None, description="Начало названия страны"),
+    session:  AsyncSession  = Depends(get_session),
+):
+    """
+    Список фильмов. Опциональная фильтрация по жанру, актёру, режиссёру или стране.
+    Сортировка по убыванию среднего рейтинга.
+    Если параметров нет — вернёт все (до 100 штук).
+    """
+    return await get_movies_filtered(session, genre, actor, director, country)
 
 
 @router.get("/{movie_id}", response_model=MovieDetail)

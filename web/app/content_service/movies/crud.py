@@ -6,14 +6,68 @@ from fastapi import HTTPException
 from decimal import Decimal
 
 
-async def get_all_movies(session: AsyncSession) -> List[MovieSummary]:
-    result = await session.execute(text("""
-        SELECT movie_id, title, release_year, avg_rating, poster_url
-          FROM movies
-          ORDER BY movie_id
-    """))
-    rows = result.mappings().all()
-    return [MovieSummary(**dict(row)) for row in rows]
+async def get_movies_filtered(
+    session: AsyncSession,
+    genre:    Optional[str] = None,
+    actor:    Optional[str] = None,
+    director: Optional[str] = None,
+    country:  Optional[str] = None,
+) -> List[MovieSummary]:
+    """
+    Список фильмов, опционально фильтруется по жанру, актёру,
+    режиссёру или стране (по началу слова), сортировка по avg_rating DESC.
+    Для актёра — совпадение с начала имени или с начала любой части (после пробела).
+    """
+    sql = text("""
+        SELECT DISTINCT
+          m.movie_id,
+          m.title,
+          m.release_year,
+          m.avg_rating,
+          m.poster_url
+        FROM movies m
+        LEFT JOIN movie_genres    mg ON mg.movie_id    = m.movie_id
+        LEFT JOIN genres          g  ON g.genre_id     = mg.genre_id
+        LEFT JOIN movie_actors    ma ON ma.movie_id    = m.movie_id
+        LEFT JOIN actors          a  ON a.actor_id     = ma.actor_id
+        LEFT JOIN movie_directors md ON md.movie_id    = m.movie_id
+        LEFT JOIN directors       d  ON d.director_id  = md.director_id
+        LEFT JOIN movie_countries mc ON mc.movie_id    = m.movie_id
+        LEFT JOIN countries       c  ON c.country_id   = mc.country_id
+        WHERE
+          (
+            COALESCE(CAST(:genre_pattern AS text), '') = ''
+            OR g.name       ILIKE :genre_pattern
+          )
+          AND (
+            COALESCE(CAST(:actor_pattern AS text), '') = ''
+            OR a.full_name        ILIKE :actor_pattern
+            OR a.full_name        ILIKE :actor_word_pattern
+          )
+          AND (
+            COALESCE(CAST(:director_pattern AS text), '') = ''
+            OR d.full_name     ILIKE :director_pattern
+          )
+          AND (
+            COALESCE(CAST(:country_pattern AS text), '') = ''
+            OR c.name         ILIKE :country_pattern
+          )
+        ORDER BY m.avg_rating DESC
+        LIMIT 100
+    """)
+
+    params = {
+        "genre_pattern":        None if genre    is None else f"{genre}%",
+        "actor_pattern":        None if actor    is None else f"{actor}%",
+        "actor_word_pattern":   None if actor    is None else f"% {actor}%",
+        "director_pattern":     None if director is None else f"{director}%",
+        "country_pattern":      None if country  is None else f"{country}%",
+    }
+
+    result = await session.execute(sql, params)
+    return [MovieSummary(**row) for row in result.mappings().all()]
+
+
 
 
 async def get_movie(session: AsyncSession, movie_id: int) -> Optional[MovieDetail]:
