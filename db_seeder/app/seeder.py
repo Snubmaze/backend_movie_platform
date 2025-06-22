@@ -97,7 +97,10 @@ async def seed():
                   directors,
                   countries,
                   users,
-                  reviews
+                  reviews,
+                  subscription_plans, 
+                  subscriptions,
+                  payments                  
                 RESTART IDENTITY CASCADE
             """))
             await session.commit()
@@ -124,6 +127,20 @@ async def seed():
                 await session.execute(
                     text("INSERT INTO directors(full_name) VALUES (:name) ON CONFLICT DO NOTHING"),
                     {"name": name}
+                )
+            #тарифы подписок
+            for name, price, days in [
+                ('1 month', 199.00,  30),
+                ('3 months',349.00,  90),
+                ('1 year',  499.00, 365),
+            ]:
+                await session.execute(
+                    text("""
+                        INSERT INTO subscription_plans (name, price, period_days)
+                        VALUES (:name, :price, :days)
+                        ON CONFLICT (name) DO NOTHING
+                    """),
+                    {"name": name, "price": price, "days": days}
                 )
             # Actors
             for name in {a for film in films for a in film["actors"]}:

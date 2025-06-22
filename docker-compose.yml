@@ -1,19 +1,34 @@
 services:
   db:
-    image: postgres:15
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    image: postgres-with-cron
+    # подключаем pg_cron и указываем, в какой БД пускать cron-задачи
+    command:
+      - postgres
+      - "-c"
+      - shared_preload_libraries=pg_cron
+      - "-c"
+      - cron.database_name=movie_db
+
     environment:
       POSTGRES_DB: movie_db
       POSTGRES_USER: movie_user
       POSTGRES_PASSWORD: secret
+
     ports:
       - "5433:5432"
+
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./database/initdb:/docker-entrypoint-initdb.d
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U movie_user -d movie_db"]
       interval: 1s
       retries: 3
+
     networks:
       - backend
 
