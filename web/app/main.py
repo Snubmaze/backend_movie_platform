@@ -5,8 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.review_service.routers import router as reviews_router
 from app.subscription_service.routers import router as subscriptons_router
 from app.search_service.routers import router as search_router
-from app.favorites_service.routers import router as favorite_router
-from app.recomendation_service.routers import router as recomendation_router
+from app.favorites_service.router import router as favorite_router
+from app.recommendation_service.router import router as recomendation_router
 
 app = FastAPI(
     title="Movie Backend Service", 

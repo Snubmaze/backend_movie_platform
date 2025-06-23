@@ -3,6 +3,8 @@ import os
 from passlib.context import CryptContext
 from sqlalchemy import text
 from database import new_session
+from data import users, films, reviews
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -10,74 +12,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
-
-films = [
-    {
-        "title": "Inception",
-        "description": "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea.",
-        "release_year": 2010,
-        "duration_min": 148,
-        "avg_rating": 8.8,
-        "poster_url": None,
-        "trailer_url": None,
-        "genres": ["Action", "Sci-Fi", "Thriller"],
-        "countries": ["USA", "UK"],
-        "directors": ["Christopher Nolan"],
-        "actors": ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page"],
-    },
-    {
-        "title": "The Godfather",
-        "description": "The aging patriarch of an organized crime dynasty transfers control to his reluctant son.",
-        "release_year": 1972,
-        "duration_min": 175,
-        "avg_rating": 9.2,
-        "poster_url": None,
-        "trailer_url": None,
-        "genres": ["Crime", "Drama"],
-        "countries": ["USA"],
-        "directors": ["Francis Ford Coppola"],
-        "actors": ["Marlon Brando", "Al Pacino"],
-    },
-    {
-        "title": "Spirited Away",
-        "description": "During her family's move to the suburbs, a sullen 10-year-old wanders into a world ruled by gods and spirits.",
-        "release_year": 2001,
-        "duration_min": 125,
-        "avg_rating": 8.6,
-        "poster_url": None,
-        "trailer_url": None,
-        "genres": ["Animation", "Adventure", "Family"],
-        "countries": ["Japan"],
-        "directors": ["Hayao Miyazaki"],
-        "actors": ["Rumi Hiiragi", "Miyu Irino"],
-    },
-    {
-        "title": "Parasite",
-        "description": "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
-        "release_year": 2019,
-        "duration_min": 132,
-        "avg_rating": 8.6,
-        "poster_url": None,
-        "trailer_url": None,
-        "genres": ["Comedy", "Drama", "Thriller"],
-        "countries": ["South Korea"],
-        "directors": ["Bong Joon Ho"],
-        "actors": ["Song Kang-ho", "Lee Sun-kyun"],
-    },
-]
-
-users = [
-    {"username": "alice", "password": "password"},
-    {"username": "bob",   "password": "password"},
-    {"username": "snubmaze", "password": "Pasha12112005"}
-]
-
-reviews = [
-    {"username": "alice", "title": "Inception",     "rating":  9, "review_text": "Amazing visuals and story."},
-    {"username": "bob",   "title": "Inception",     "rating":  8, "review_text": None},
-    {"username": "alice", "title": "The Godfather", "rating": 10, "review_text": "A true classic."},
-    {"username": "bob",   "title": "Spirited Away", "rating":  9, "review_text": None},
-]
 
 async def seed():
     async with new_session() as session:

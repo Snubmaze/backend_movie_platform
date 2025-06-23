@@ -2,16 +2,13 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
-from app.recommendation.schemas import MovieRead
+from app.recommendation_service.schemas import MovieRead
 
 async def get_recommendations(
     session: AsyncSession,
     user_id: int,
     limit: int = 20
 ) -> List[MovieRead]:
-    """
-    Возвращает рекомендованные фильмы для пользователя, сортируя по сумме очков предпочтений и avg_rating.
-    """
     query = text("""
         SELECT m.movie_id, m.title, m.description, m.release_year, m.duration_min,
                m.avg_rating, m.poster_url, m.trailer_url, m.subscription_required, m.favorites_count

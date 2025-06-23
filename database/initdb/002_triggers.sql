@@ -168,6 +168,9 @@ CREATE TRIGGER trg_fav_genre_pref
   EXECUTE FUNCTION update_genre_pref_from_favorites();
 
 
+-- =============================================================================
+-- 6. Новый триггер: обновление предпочтений пользователя
+-- =============================================================================
 CREATE OR REPLACE FUNCTION update_preferences_from_reviews() RETURNS TRIGGER AS $$
 DECLARE
   score_delta INT;
@@ -182,27 +185,27 @@ BEGIN
 
   -- ЖАНРЫ
   INSERT INTO user_genre_pref (user_id, genre_id, score)
-  SELECT NEW.user_id, mg.genre_id, score_delta
-  FROM movie_genres mg
-  WHERE mg.movie_id = NEW.movie_id
-  ON CONFLICT (user_id, genre_id)
-  DO UPDATE SET score = user_genre_pref.score + score_delta;
+    SELECT NEW.user_id, mg.genre_id, score_delta
+      FROM movie_genres mg
+     WHERE mg.movie_id = NEW.movie_id
+    ON CONFLICT (user_id, genre_id)
+      DO UPDATE SET score = user_genre_pref.score + score_delta;
 
   -- АКТЁРЫ
   INSERT INTO user_actor_pref (user_id, actor_id, score)
-  SELECT NEW.user_id, ma.actor_id, score_delta
-  FROM movie_actors ma
-  WHERE ma.movie_id = NEW.movie_id
-  ON CONFLICT (user_id, actor_id)
-  DO UPDATE SET score = user_actor_pref.score + score_delta;
+    SELECT NEW.user_id, ma.actor_id, score_delta
+      FROM movie_actors ma
+     WHERE ma.movie_id = NEW.movie_id
+    ON CONFLICT (user_id, actor_id)
+      DO UPDATE SET score = user_actor_pref.score + score_delta;
 
   -- РЕЖИССЁРЫ
   INSERT INTO user_director_pref (user_id, director_id, score)
-  SELECT NEW.user_id, md.director_id, score_delta
-  FROM movie_directors md
-  WHERE md.movie_id = NEW.movie_id
-  ON CONFLICT (user_id, director_id)
-  DO UPDATE SET score = user_director_pref.score + score_delta;
+    SELECT NEW.user_id, md.director_id, score_delta
+      FROM movie_directors md
+     WHERE md.movie_id = NEW.movie_id
+    ON CONFLICT (user_id, director_id)
+      DO UPDATE SET score = user_director_pref.score + score_delta;
 
   RETURN NULL;
 END;

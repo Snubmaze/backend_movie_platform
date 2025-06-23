@@ -1,5 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
+from typing import Optional
+
 
 class FavoriteRead(BaseModel):
     user_id: int
