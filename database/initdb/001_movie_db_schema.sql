@@ -131,3 +131,24 @@ CREATE TABLE subscription_sales (
   sale_date   DATE        PRIMARY KEY,
   total_amount NUMERIC(12,2) NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS user_genre_pref (
+  user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  genre_id SMALLINT NOT NULL REFERENCES genres(genre_id) ON DELETE CASCADE,
+  score INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, genre_id)
+);
+
+CREATE TABLE IF NOT EXISTS user_actor_pref (
+  user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  actor_id BIGINT NOT NULL REFERENCES actors(actor_id) ON DELETE CASCADE,
+  score INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, actor_id)
+);
+
+CREATE TABLE IF NOT EXISTS user_director_pref (
+  user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  director_id BIGINT NOT NULL REFERENCES directors(director_id) ON DELETE CASCADE,
+  score INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, director_id)
+);
