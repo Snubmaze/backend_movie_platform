@@ -140,3 +140,76 @@ CREATE TRIGGER trg_update_sales
   EXECUTE FUNCTION update_subscription_sales();
 
 
+CREATE OR REPLACE FUNCTION update_genre_pref_from_favorites() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO user_genre_pref (user_id, genre_id, score)
+    SELECT NEW.user_id, mg.genre_id, 1
+    FROM movie_genres mg
+    WHERE mg.movie_id = NEW.movie_id
+    ON CONFLICT (user_id, genre_id)
+    DO UPDATE SET score = user_genre_pref.score + 1;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE user_genre_pref
+    SET score = score - 1
+    WHERE user_id = OLD.user_id
+      AND genre_id IN (
+        SELECT genre_id FROM movie_genres WHERE movie_id = OLD.movie_id
+      );
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_fav_genre_pref ON favorites;
+CREATE TRIGGER trg_fav_genre_pref
+  AFTER INSERT OR DELETE ON favorites
+  FOR EACH ROW
+  EXECUTE FUNCTION update_genre_pref_from_favorites();
+
+
+CREATE OR REPLACE FUNCTION update_preferences_from_reviews() RETURNS TRIGGER AS $$
+DECLARE
+  score_delta INT;
+BEGIN
+  IF NEW.rating >= 9 THEN
+    score_delta := 2;
+  ELSIF NEW.rating >= 7 THEN
+    score_delta := 1;
+  ELSE
+    score_delta := -1;
+  END IF;
+
+  -- ЖАНРЫ
+  INSERT INTO user_genre_pref (user_id, genre_id, score)
+  SELECT NEW.user_id, mg.genre_id, score_delta
+  FROM movie_genres mg
+  WHERE mg.movie_id = NEW.movie_id
+  ON CONFLICT (user_id, genre_id)
+  DO UPDATE SET score = user_genre_pref.score + score_delta;
+
+  -- АКТЁРЫ
+  INSERT INTO user_actor_pref (user_id, actor_id, score)
+  SELECT NEW.user_id, ma.actor_id, score_delta
+  FROM movie_actors ma
+  WHERE ma.movie_id = NEW.movie_id
+  ON CONFLICT (user_id, actor_id)
+  DO UPDATE SET score = user_actor_pref.score + score_delta;
+
+  -- РЕЖИССЁРЫ
+  INSERT INTO user_director_pref (user_id, director_id, score)
+  SELECT NEW.user_id, md.director_id, score_delta
+  FROM movie_directors md
+  WHERE md.movie_id = NEW.movie_id
+  ON CONFLICT (user_id, director_id)
+  DO UPDATE SET score = user_director_pref.score + score_delta;
+
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_review_pref ON reviews;
+CREATE TRIGGER trg_review_pref
+  AFTER INSERT OR UPDATE ON reviews
+  FOR EACH ROW
+  EXECUTE FUNCTION update_preferences_from_reviews();
